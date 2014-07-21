@@ -24,15 +24,61 @@ app.use(function(req, res, next){
 });
 
 //define route structures for the API
+//eg. /api/v1/username
 var router1 = express.Router();
 router1.get('/', function(req, res){res.send('hello this is version 1')});
+router1.route('/users')
+.post(function(req, res){
+    var user = new User();
+    //get user name from x-www-form request to /users or via form POST
+    user.name = req.body.name;
+    user.save(function(err){
+	if(err)
+	    res.send(err);
+	res.json({message: 'User created: ' + user.name});
+    });
+})
+.get(function(req, res){
+    User.find(function(err, datas){
+	if(err)
+	    res.send(err);
+	res.json(datas);
+    });
+})
 
-var router2 = express.Router();
-router2.get('/', function(req, res){res.send("this is router version 2")});
+//RESTful API for each username
+router1.route('/users/:username')
+.get(function(req, res){
+    User.findById(req.params.username, function(err, user){
+	if(err)
+	    res.send(err);
+	res.json(user);
+    });
+})
+.put(function(req, res){
+    User.findById(req.params.username, function(err, user){
+	if(err)
+	    res.send(err);
+	user.name = req.body.name;
+	user.save(function(err){
+	    if(err)
+		res.send(err);
+	    res.json({message:'username updated'});
+	});
+
+    });
+})
+.delete(function(req, res){
+    User.remove({name: req.params.username}, function(err, user){
+	if(err)
+	    res.send(err);
+	res.json({message:'deleted: ' + req.params.username});
+
+    });
+});
 
 //attach routers to app
 app.use('/api/v1', router1);
-app.use('/api/v2', router2);
 
 app.get('/', function(req, res){res.send("hi")})
 
