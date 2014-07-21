@@ -29,14 +29,22 @@ var router1 = express.Router();
 router1.get('/', function(req, res){res.send('hello this is version 1')});
 router1.route('/users')
 .post(function(req, res){
-    var user = new User();
     //get user name from x-www-form request to /users or via form POST
-    user.name = req.body.name;
-    user.save(function(err){
-	if(err)
-	    res.send(err);
-	res.json({message: 'User created: ' + user.name});
-    });
+    //only post if name is given
+ 
+    if(req.body.name == undefined){
+	res.json({message:"username doesn't exist!"});
+    }else{
+	var user = new User();
+	
+	user.name = req.body.name;
+	user.save(function(err){
+	    if(err)
+		res.send(err);
+	    res.json({message: 'User created: ' + user.name});
+	});
+    }
+   
 })
 .get(function(req, res){
     User.find(function(err, datas){
@@ -49,14 +57,14 @@ router1.route('/users')
 //RESTful API for each username
 router1.route('/users/:username')
 .get(function(req, res){
-    User.findById(req.params.username, function(err, user){
+    User.findOne({name: req.params.username}, function(err, user){
 	if(err)
 	    res.send(err);
 	res.json(user);
     });
 })
 .put(function(req, res){
-    User.findById(req.params.username, function(err, user){
+    User.findOne({name: req.params.username}, function(err, user){
 	if(err)
 	    res.send(err);
 	user.name = req.body.name;
